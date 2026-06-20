@@ -7,6 +7,13 @@ and this project follows Linux Mint release versioning with patch numbers.
 
 ## [Unreleased]
 
+### Changed
+- Installer: clone `asusctl` from its new home at `https://github.com/OpenGamingCollective/asusctl` (the project migrated from GitLab to the OpenGamingCollective on GitHub, where future development happens). `supergfxctl` remains on GitLab.
+- README: point asusctl source and issue links to the OGC GitHub repository.
+
+### Thanks
+- Thanks to @farfalk for reporting the asusctl OGC migration in issue #6.
+
 ## [22.3.1] - 2026-05-20
 
 ### Added
