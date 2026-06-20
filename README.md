@@ -1,6 +1,6 @@
 # ASUS Linux Tools Installer for Linux Mint
 
-An automated installation script for [asusctl](https://gitlab.com/asus-linux/asusctl) and [supergfxctl](https://gitlab.com/asus-linux/supergfxctl) on ASUS ROG/TUF laptops running **Linux Mint**.
+An automated installation script for [asusctl](https://github.com/OpenGamingCollective/asusctl) and [supergfxctl](https://gitlab.com/asus-linux/supergfxctl) on ASUS ROG/TUF laptops running **Linux Mint**.
 
 ## 🚀 Features
 
@@ -271,7 +271,7 @@ When reporting issues, please include:
 
 For more help, visit:
 - [ASUS Linux Community](https://asus-linux.org/)
-- [asusctl GitLab Issues](https://gitlab.com/asus-linux/asusctl/-/issues)
+- [asusctl GitHub Issues](https://github.com/OpenGamingCollective/asusctl/issues)
 - [supergfxctl GitLab Issues](https://gitlab.com/asus-linux/supergfxctl/-/issues)
 
 ## 📄 License
