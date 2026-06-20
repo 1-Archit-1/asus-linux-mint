@@ -28,7 +28,7 @@
 set -euo pipefail
 
 # Script configuration
-SCRIPT_VERSION="22.3.1"
+SCRIPT_VERSION="22.3.2"
 MIN_MINT_VERSION="22.3"
 MIN_KERNEL_VERSION="6.1"
 

@@ -53,10 +53,10 @@ jobs:
 
       - name: Check external URLs
         run: |
-          echo "Checking GitLab repositories accessibility..."
-          
-          # Check asusctl repository
-          curl -f -s -I https://gitlab.com/asus-linux/asusctl.git > /dev/null
+          echo "Checking source repositories accessibility..."
+
+          # Check asusctl repository (migrated to OpenGamingCollective on GitHub)
+          curl -f -s -I https://github.com/OpenGamingCollective/asusctl.git > /dev/null
           echo "✅ asusctl repository accessible"
           
           # Check supergfxctl repository  

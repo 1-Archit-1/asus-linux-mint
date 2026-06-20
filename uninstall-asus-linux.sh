@@ -24,7 +24,7 @@
 set -euo pipefail
 
 # Script configuration
-SCRIPT_VERSION="22.3.1"
+SCRIPT_VERSION="22.3.2"
 BASE_DIR="${ASUS_BUILD_DIR:-$HOME/.local/src/asus-linux}"
 
 # Function for colored output
