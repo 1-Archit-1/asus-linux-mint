@@ -425,19 +425,15 @@ update_firmware() {
 install_asusctl() {
     print_status "Installing asusctl..."
     
-    # Clone or update asusctl
-    if [ ! -d "asusctl" ]; then
-        print_status "Cloning asusctl repository..."
-        git clone https://github.com/OpenGamingCollective/asusctl.git
-    else
-        print_status "Updating asusctl repository..."
-        cd asusctl
-        git fetch --all
-        git reset --hard origin/main
-        cd ..
+    # Use local asusctl source (includes fix for asusd-user DBus path mismatch)
+    ASUSCTL_SRC="$HOME/asusctl"
+    if [ ! -d "$ASUSCTL_SRC" ]; then
+        print_error "Local asusctl source not found at $ASUSCTL_SRC"
+        exit 1
     fi
+    print_status "Using local asusctl source: $ASUSCTL_SRC"
 
-    cd asusctl
+    cd "$ASUSCTL_SRC"
     if [[ "$INSTALL_ROG_GUI" != "1" ]]; then
         print_status "Skipping rog-control-center (GUI) because ASUS_INSTALL_ROG_GUI=0."
     fi
