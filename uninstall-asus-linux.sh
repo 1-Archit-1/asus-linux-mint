@@ -57,7 +57,7 @@ print_header() {
 confirm_uninstall() {
     print_warning "This will completely remove ASUS Linux tools from your system:"
     echo "  • asusctl and supergfxctl binaries"
-    echo "  • All systemd services (asusd, supergfxd, asusd-user)"
+    echo "  • All systemd services (asusd, asus-shutdown, supergfxd, asusd-user)"
     echo "  • Configuration files and udev rules"
     echo "  • Desktop files and icons"
     echo "  • asusd runtime configuration directory (optional)"
@@ -84,7 +84,13 @@ stop_services() {
         systemctl --user disable asusd-user.service 2>/dev/null || true
         print_status "✓ asusd-user.service stopped and disabled."
     fi
-    
+
+    if systemctl list-unit-files | grep -q "asus-shutdown.service"; then
+        sudo systemctl stop asus-shutdown.service 2>/dev/null || true
+        sudo systemctl disable asus-shutdown.service 2>/dev/null || true
+        print_status "✓ asus-shutdown.service stopped and disabled."
+    fi
+
     # Stop and disable asusd service (system-level)
     if systemctl list-unit-files | grep -q "asusd.service"; then
         sudo systemctl stop asusd.service 2>/dev/null || true
@@ -112,12 +118,14 @@ remove_binaries() {
         "/usr/bin/asusctl"
         "/usr/bin/asusd"
         "/usr/bin/asusd-user"
+        "/usr/bin/asus-shutdown"
         "/usr/bin/rog-control-center"
         "/usr/bin/supergfxctl"
         "/usr/bin/supergfxd"
         "/usr/local/bin/asusctl"
         "/usr/local/bin/asusd"
         "/usr/local/bin/asusd-user"
+        "/usr/local/bin/asus-shutdown"
         "/usr/local/bin/rog-control-center"
         "/usr/local/bin/supergfxctl"
         "/usr/local/bin/supergfxd"
@@ -137,6 +145,7 @@ remove_service_files() {
     
     local service_files=(
         "/usr/lib/systemd/system/asusd.service"
+        "/usr/lib/systemd/system/asus-shutdown.service"
         "/usr/lib/systemd/system/supergfxd.service"
         "/usr/lib/systemd/user/asusd-user.service"
         "/usr/lib/systemd/system-preset/supergfxd.preset"
@@ -249,6 +258,7 @@ remove_desktop_files() {
     
     local desktop_files=(
         "/usr/share/applications/rog-control-center.desktop"
+        "/usr/share/metainfo/org.opengamingcollective.rog-control-center.metainfo.xml"
     )
     
     for desktop_file in "${desktop_files[@]}"; do
@@ -344,7 +354,7 @@ verify_removal() {
     local issues_found=false
     
     # Check if binaries still exist
-    local binaries=("asusctl" "asusd" "supergfxctl" "supergfxd" "rog-control-center")
+    local binaries=("asusctl" "asusd" "asus-shutdown" "supergfxctl" "supergfxd" "rog-control-center")
     for binary in "${binaries[@]}"; do
         if command -v "$binary" &> /dev/null; then
             print_warning "⚠ $binary still found in PATH"

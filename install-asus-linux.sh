@@ -34,7 +34,7 @@ MIN_KERNEL_VERSION="6.1"
 
 # ASUS hardware support kernel requirements
 ASUS_MIN_KERNEL="6.1"           # Minimum for full ASUS hardware support
-ASUS_OPTIMAL_KERNEL="6.14"      # Optimal for latest ASUS-specific fixes (Mint 22.3 HWE or newer mainline)
+ASUS_OPTIMAL_KERNEL="6.19"      # Optimal: asus-armoury driver (TDP/PPT control) mainline since 6.19
 ASUS_HWE_MAX_KERNEL="6.14"      # Maximum available through Mint 22.3 HWE stack
 
 # Set working directory (can be overridden with ASUS_BUILD_DIR environment variable)
@@ -263,7 +263,7 @@ install_recent_kernel() {
     elif command -v bc &> /dev/null && (( $(echo "$current_kernel < $hwe_max_kernel" | bc -l) )); then
         print_status "✓ Kernel $current_kernel meets minimum requirements."
         print_status "Note: Standard repositories provide kernels up to ~$hwe_max_kernel"
-        print_status "For optimal ASUS support (kernel $optimal_kernel+), consider mainline installation."
+        print_status "For optimal ASUS support (kernel $optimal_kernel+ for asus-armoury TDP/PPT control), consider mainline installation."
         echo
         read -p "Install newer HWE kernel (up to ~$hwe_max_kernel)? (y/N): " -n 1 -r
         echo
@@ -273,11 +273,9 @@ install_recent_kernel() {
     elif command -v bc &> /dev/null && (( $(echo "$current_kernel < $optimal_kernel" | bc -l) )); then
         print_status "✓ Kernel $current_kernel provides good ASUS hardware support."
         print_status "Note: For optimal ASUS support, kernel $optimal_kernel+ includes:"
-        echo "  • Enhanced ASUS WMI driver with thermal profile fixes"
-        echo "  • Better Intel Lunar Lake performance (~22% improvement)"
-        echo "  • Improved ROG Ally suspend/resume support"
-        echo "  • Mini-LED support for 2024 ROG laptops"
-        echo "  • Enhanced GPU MUX switching for Vivobook models"
+        echo "  • asus-armoury driver: TDP/PPT tuning via firmware-attributes (mainline since 6.19)"
+        echo "  • Enhanced ASUS WMI driver fixes"
+        echo "  • Better suspend/resume support"
         echo
         print_warning "Kernel $optimal_kernel+ requires mainline installation (not available in standard repos)."
         show_mainline_kernel_info
@@ -313,8 +311,8 @@ install_hwe_kernel() {
 # Show information about mainline kernel installation
 show_mainline_kernel_info() {
     echo
-    print_status "=== MAINLINE KERNEL 6.12+ INSTALLATION (OPTIONAL) ==="
-    echo "For optimal ASUS support, you can manually install mainline kernel 6.12+:"
+    print_status "=== MAINLINE KERNEL 6.19+ INSTALLATION (OPTIONAL) ==="
+    echo "For optimal ASUS support (asus-armoury driver for TDP/PPT control), you can manually install mainline kernel 6.19+:"
     echo
     echo "Option 1 - Using Ubuntu Mainline Kernel Installer:"
     echo "  1. Install mainline kernel tool:"
@@ -445,22 +443,24 @@ install_asusctl() {
     fi
 
     print_status "Building asusctl (daemon + CLI) (this may take several minutes)..."
-    cargo build --release --locked -p asusctl -p asusd -p asusd-user
+    cargo build --release -p asusctl -p asusd -p asusd-user -p asus-shutdown
     if [[ "$INSTALL_ROG_GUI" == "1" ]]; then
         print_status "Building rog-control-center (GUI)..."
         # Linux Mint desktops commonly run X11; enable X11 backend to avoid runtime panics.
-        cargo build --release --locked -p rog-control-center --features "rog-control-center/x11"
+        cargo build --release -p rog-control-center --features "rog-control-center/x11"
     fi
 
     print_status "Installing asusctl and asusd..."
     sudo install -D -m 0755 "./target/release/asusctl" "/usr/bin/asusctl"
     sudo install -D -m 0755 "./target/release/asusd" "/usr/bin/asusd"
     sudo install -D -m 0755 "./target/release/asusd-user" "/usr/bin/asusd-user"
+    sudo install -D -m 0755 "./target/release/asus-shutdown" "/usr/bin/asus-shutdown"
 
     # Install system integration files (udev, dbus, systemd, data assets)
     sudo install -D -m 0644 "./data/asusd.rules" "/usr/lib/udev/rules.d/99-asusd.rules"
     sudo install -D -m 0644 "./data/asusd.conf" "/usr/share/dbus-1/system.d/asusd.conf"
     sudo install -D -m 0644 "./data/asusd.service" "/usr/lib/systemd/system/asusd.service"
+    sudo install -D -m 0644 "./data/asus-shutdown.service" "/usr/lib/systemd/system/asus-shutdown.service"
     sudo install -D -m 0644 "./data/asusd-user.service" "/usr/lib/systemd/user/asusd-user.service"
     sudo install -D -m 0644 "./rog-aura/data/aura_support.ron" "/usr/share/asusd/aura_support.ron"
 
@@ -474,8 +474,9 @@ install_asusctl() {
     # Optional: install ROG Control Center desktop integration
     if [[ "$INSTALL_ROG_GUI" == "1" ]]; then
         sudo install -D -m 0755 "./target/release/rog-control-center" "/usr/bin/rog-control-center"
-        sudo install -D -m 0644 "./rog-control-center/data/rog-control-center.desktop" "/usr/share/applications/rog-control-center.desktop"
+        sudo install -D -m 0644 "./rog-control-center/data/org.opengamingcollective.rog-control-center.desktop" "/usr/share/applications/rog-control-center.desktop"
         sudo install -D -m 0644 "./rog-control-center/data/rog-control-center.png" "/usr/share/icons/hicolor/512x512/apps/rog-control-center.png"
+        sudo install -D -m 0644 "./rog-control-center/data/org.opengamingcollective.rog-control-center.metainfo.xml" "/usr/share/metainfo/org.opengamingcollective.rog-control-center.metainfo.xml"
 
         if [ -d "./rog-aura/data/layouts" ]; then
             sudo mkdir -p "/usr/share/rog-gui/layouts"
@@ -558,7 +559,17 @@ configure_services() {
         print_error "Expected unit file at /usr/lib/systemd/system/asusd.service (or similar)."
         return 1
     fi
-    
+
+    # Enable asus-shutdown service (holds a logind inhibitor lock to flush queued GPU
+    # mode changes safely at shutdown — without this, GPU mode switches are lost on power-off)
+    if [ -f "/usr/lib/systemd/system/asus-shutdown.service" ]; then
+        sudo systemctl enable asus-shutdown.service
+        sudo systemctl start asus-shutdown.service
+        print_status "asus-shutdown.service enabled and started."
+    else
+        print_warning "asus-shutdown.service not found. GPU mode changes will not persist across reboots."
+    fi
+
     # Enable and start supergfxd service (system-level)
     if systemctl list-unit-files --type=service 2>/dev/null | grep -q "^supergfxd\\.service"; then
         sudo systemctl enable supergfxd.service
