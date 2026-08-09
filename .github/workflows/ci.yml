@@ -200,6 +200,12 @@ jobs:
               exit 1
             fi
           done
+
+          # Keep project prose free of typographic dashes and curly quotes.
+          if git grep -n -I -P '[\x{2013}\x{2014}\x{2018}\x{2019}\x{201C}\x{201D}]' -- ':!assets/*.lock'; then
+            echo "ERROR: Replace en/em dashes and curly quotes with plain punctuation"
+            exit 1
+          fi
           
           # Check CHANGELOG follows format
           if grep -q "## \[" CHANGELOG.md; then

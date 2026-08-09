@@ -110,9 +110,9 @@ in
 - Target Linux Mint 22.2 (Zara) only.
 
 ### Changed
-- README: simplify kernel section to reflect Mint 22.2’s default HWE kernel 6.14; keep optional mainline instructions.
+- README: simplify kernel section to reflect Mint 22.2's default HWE kernel 6.14; keep optional mainline instructions.
 - Scripts: set minimum supported Mint to 22.2; align kernel guidance to 6.14; correct HWE meta-packages to `linux-generic`/`linux-headers-generic`.
-- CI: update release requirements text to “Linux Mint 22.2 (Zara)”.
+- CI: update release requirements text to "Linux Mint 22.2 (Zara)".
 
 ### Fixed
 - Uninstall script header label and version alignment.
