@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ASUS Linux Tools Installation Script for Linux Mint 22.3 and Ubuntu 24.04
-# Version: 22.3.3-dev
+# Version: 22.3.3
 #
 # This script installs a tested asusctl release for ASUS laptops.
 # supergfxctl is available only as an explicit opt-in for specialised use cases.
@@ -28,7 +28,7 @@
 set -euo pipefail
 
 # Script configuration
-SCRIPT_VERSION="22.3.3-dev"
+SCRIPT_VERSION="22.3.3"
 SUPPORTED_MINT_VERSION="22.3"
 SUPPORTED_UBUNTU_VERSION="24.04"
 

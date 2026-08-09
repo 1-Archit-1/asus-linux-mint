@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ASUS Linux Tools Uninstall Script for Linux Mint 22.3 and Ubuntu 24.04
-# Version: 22.3.3-dev
+# Version: 22.3.3
 #
 # This script removes asusctl, optional/legacy supergfxctl, and files managed
 # by install-asus-linux.sh. User-customised asusd settings are opt-in cleanup.
@@ -23,7 +23,7 @@
 set -euo pipefail
 
 # Script configuration
-SCRIPT_VERSION="22.3.3-dev"
+SCRIPT_VERSION="22.3.3"
 ACCOUNT_HOME=$(getent passwd "$(id -u)" | cut -d: -f6)
 BASE_DIR="${ASUS_BUILD_DIR:-$ACCOUNT_HOME/.local/src/asus-linux}"
 

@@ -7,8 +7,8 @@ PROJECT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 # shellcheck disable=SC1091
 source "$PROJECT_DIR/uninstall-asus-linux.sh"
 
-[[ "$SCRIPT_VERSION" == "22.3.3-dev" ]] || {
-    echo "FAIL: unexpected uninstaller development version" >&2
+[[ "$SCRIPT_VERSION" == "22.3.3" ]] || {
+    echo "FAIL: unexpected uninstaller release version" >&2
     exit 1
 }
 

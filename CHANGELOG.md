@@ -7,6 +7,8 @@ and this project follows Linux Mint release versioning with patch numbers.
 
 ## [Unreleased]
 
+## [22.3.3] - 2026-08-09
+
 ### Added
 - Installer: install and enable `asus-shutdown` from asusctl 6.3.11 so queued GPU firmware changes are applied during shutdown.
 - Installer: add `ASUS_INSTALL_SUPERGFXCTL=1` for specialised VFIO, eGPU, dGPU suspend, and monitoring workflows; supergfxctl is disabled by default.

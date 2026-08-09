@@ -27,7 +27,7 @@ assert_false() {
 }
 
 [[ "$ASUSCTL_VERSION" == "6.3.11" ]] || fail "unexpected asusctl version"
-[[ "$SCRIPT_VERSION" == "22.3.3-dev" ]] || fail "unexpected installer development version"
+[[ "$SCRIPT_VERSION" == "22.3.3" ]] || fail "unexpected installer release version"
 [[ "$SUPPORTED_MINT_VERSION" == "22.3" ]] || fail "unexpected supported Mint release"
 [[ "$SUPPORTED_UBUNTU_VERSION" == "24.04" ]] || fail "unexpected supported Ubuntu release"
 [[ "$ASUSCTL_COMMIT" == "4d8a45b3bcd36f0434a9e802ad84fc842b13ea63" ]] || fail "unexpected asusctl commit"
