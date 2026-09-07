@@ -383,7 +383,24 @@ check_system() {
             return 1
         fi
     fi
-    
+
+    # asusd implements net.hadess.PowerProfiles itself. Offer to disable native power-profiles-daemon.
+    if systemctl is-active --quiet power-profiles-daemon.service 2>/dev/null; then
+        echo
+        print_warning "power-profiles-daemon is active and conflicts with asusd's profile management."
+        print_warning "Both claim the net.hadess.PowerProfiles D-Bus interface; whichever wins the"
+        print_warning "race controls platform_profile and CPU EPP — the loser is silently ignored."
+        echo
+        read -p "Disable power-profiles-daemon and let asusd manage profiles? (recommended) (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            sudo systemctl disable --now power-profiles-daemon.service
+            print_status "✓ power-profiles-daemon disabled. asusd will manage platform profiles."
+        else
+            print_warning "Continuing with power-profiles-daemon active. Profile behaviour may be non-deterministic."
+        fi
+    fi
+
     # Create build directory
     mkdir -p "$BASE_DIR"
     cd "$BASE_DIR"
