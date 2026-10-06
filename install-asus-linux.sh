@@ -34,11 +34,9 @@ SUPPORTED_UBUNTU_VERSION="24.04"
 
 # Pinned upstream revisions. Keeping these immutable prevents an upstream branch
 # change from silently becoming privileged code on user systems.
-ASUSCTL_VERSION="6.3.11"
-ASUSCTL_COMMIT="4d8a45b3bcd36f0434a9e802ad84fc842b13ea63"
+ASUSCTL_VERSION="6.4.0"
+ASUSCTL_COMMIT="e6c1469ccf2a745c6a1aff763852df90066c6baa"
 ASUSCTL_REPO="https://github.com/OpenGamingCollective/asusctl.git"
-ASUSCTL_LOCK_SHA256="92f9f3635b2522c8e407712fe1962ee1d41f46f96827482f31dac57afa821237"
-ASUSCTL_LOCK_URL="https://raw.githubusercontent.com/andreas-glaser/asus-linux-mint/main/assets/asusctl-6.3.11-Cargo.lock"
 SUPERGFXCTL_VERSION="5.2.7"
 SUPERGFXCTL_COMMIT="a86383e1b2f32d4f87f8dd47f0d6b06690877c64"
 SUPERGFXCTL_REPO="https://gitlab.com/asus-linux/supergfxctl.git"
@@ -155,7 +153,7 @@ prepare_source_checkout() {
     local name="$1"
     local repository="$2"
     local expected_commit="$3"
-    local expected_lock_hash="$4"
+    local expected_lock_hash="${4:-}"
     local source_dir="$BASE_DIR/$name"
     local fetched_commit
     local lock_hash
@@ -189,7 +187,7 @@ prepare_source_checkout() {
         lock_status=$(git -C "$source_dir" status --porcelain -- Cargo.lock)
         if [ -n "$lock_status" ] && [ -f "$source_dir/Cargo.lock" ]; then
             lock_hash=$(sha256sum "$source_dir/Cargo.lock" | awk '{print $1}')
-            if [[ "$lock_hash" != "$expected_lock_hash" ]]; then
+            if [[ -n "$expected_lock_hash" && "$lock_hash" != "$expected_lock_hash" ]]; then
                 print_error "Refusing to overwrite an unrecognized Cargo.lock in $source_dir"
                 return 1
             fi
@@ -385,7 +383,24 @@ check_system() {
             return 1
         fi
     fi
-    
+
+    # asusd implements net.hadess.PowerProfiles itself. Offer to disable native power-profiles-daemon.
+    if systemctl is-active --quiet power-profiles-daemon.service 2>/dev/null; then
+        echo
+        print_warning "power-profiles-daemon is active and conflicts with asusd's profile management."
+        print_warning "Both claim the net.hadess.PowerProfiles D-Bus interface; whichever wins the"
+        print_warning "race controls platform_profile and CPU EPP — the loser is silently ignored."
+        echo
+        read -p "Disable power-profiles-daemon and let asusd manage profiles? (recommended) (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            sudo systemctl disable --now power-profiles-daemon.service
+            print_status "✓ power-profiles-daemon disabled. asusd will manage platform profiles."
+        else
+            print_warning "Continuing with power-profiles-daemon active. Profile behaviour may be non-deterministic."
+        fi
+    fi
+
     # Create build directory
     mkdir -p "$BASE_DIR"
     cd "$BASE_DIR"
@@ -519,13 +534,7 @@ install_asusctl() {
     local normalized_unit_dir
 
     print_status "Installing asusctl $ASUSCTL_VERSION..."
-    prepare_source_checkout "asusctl-$ASUSCTL_VERSION" "$ASUSCTL_REPO" "$ASUSCTL_COMMIT" "$ASUSCTL_LOCK_SHA256"
-    install_verified_dependency_lock \
-        "asusctl" \
-        "asusctl-$ASUSCTL_VERSION-Cargo.lock" \
-        "$ASUSCTL_LOCK_SHA256" \
-        "$ASUSCTL_LOCK_URL" \
-        "$BASE_DIR/asusctl-$ASUSCTL_VERSION/Cargo.lock"
+    prepare_source_checkout "asusctl-$ASUSCTL_VERSION" "$ASUSCTL_REPO" "$ASUSCTL_COMMIT"
 
     cd "$BASE_DIR/asusctl-$ASUSCTL_VERSION"
     if [[ "$INSTALL_ROG_GUI" != "1" ]]; then
@@ -533,7 +542,7 @@ install_asusctl() {
     fi
 
     print_status "Building asusctl (daemon + CLI) (this may take several minutes)..."
-    cargo_stable build --release --locked -p asusctl -p asusd -p asusd-user -p asus-shutdown
+    cargo_stable build --release --locked -p asusctl -p asusd -p asus-shutdown
     if [[ "$INSTALL_ROG_GUI" == "1" ]]; then
         print_status "Building rog-control-center (GUI)..."
         # Linux Mint desktops commonly run X11; enable X11 backend to avoid runtime panics.
@@ -543,7 +552,6 @@ install_asusctl() {
     print_status "Installing asusctl and asusd..."
     sudo install -D -m 0755 "./target/release/asusctl" "/usr/bin/asusctl"
     sudo install -D -m 0755 "./target/release/asusd" "/usr/bin/asusd"
-    sudo install -D -m 0755 "./target/release/asusd-user" "/usr/bin/asusd-user"
     sudo install -D -m 0755 "./target/release/asus-shutdown" "/usr/bin/asus-shutdown"
 
     # Install system integration files (udev, dbus, systemd, data assets)
@@ -557,7 +565,6 @@ install_asusctl() {
     prepare_supported_systemd_unit "./data/asus-shutdown.service" "$normalized_shutdown_unit"
     sudo install -D -m 0644 "$normalized_asusd_unit" "/usr/lib/systemd/system/asusd.service"
     sudo install -D -m 0644 "$normalized_shutdown_unit" "/usr/lib/systemd/system/asus-shutdown.service"
-    sudo install -D -m 0644 "./data/asusd-user.service" "/usr/lib/systemd/user/asusd-user.service"
     sudo install -D -m 0644 "./rog-aura/data/aura_support.ron" "/usr/share/asusd/aura_support.ron"
 
     if [ -d "./rog-anime/data/anime" ]; then
@@ -674,17 +681,6 @@ configure_services() {
     elif command -v supergfxctl &> /dev/null; then
         print_warning "Existing supergfxctl installation detected and left unchanged."
         print_warning "It is no longer installed by default; use ASUS_INSTALL_SUPERGFXCTL=1 to manage it here."
-    fi
-    
-    # Enable asusd-user service for current user (user-level)
-    systemctl --user daemon-reload 2>/dev/null || true
-    if systemctl --user cat asusd-user.service &> /dev/null; then
-        systemctl --user enable asusd-user.service 2>/dev/null || true
-        systemctl --user restart asusd-user.service 2>/dev/null || true
-        print_status "asusd-user.service enabled and restarted for current user."
-    else
-        print_warning "asusd-user.service not available in the current session. This is optional but recommended."
-        print_warning "After reboot/login, you can enable it with: systemctl --user enable --now asusd-user.service"
     fi
     
     # Mint users invoking this installer already have an administrative group
