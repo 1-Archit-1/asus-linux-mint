@@ -1,10 +1,10 @@
 # ASUS Linux Tools Installer for Linux Mint
 
-An automated installer for [asusctl](https://github.com/OpenGamingCollective/asusctl) 6.3.11 - the latest published stable release as of August 9, 2026 - on supported ASUS ROG/TUF laptops. **Linux Mint 22.3 is the primary target**; Ubuntu 24.04 is a secondary compatibility target. The specialised [supergfxctl](https://gitlab.com/asus-linux/supergfxctl) daemon is available as an explicit opt-in.
+An automated installer for [asusctl](https://github.com/OpenGamingCollective/asusctl) 6.5.0- the latest published stable release as of Oct 5, 2026 - on supported ASUS ROG/TUF laptops. **Linux Mint 22.3 is the primary target**; Ubuntu 24.04 is a secondary compatibility target. The specialised [supergfxctl](https://gitlab.com/asus-linux/supergfxctl) daemon is available as an explicit opt-in.
 
 ## 🚀 Features
 
-- **Pinned installation** of asusctl 6.3.11 with a hash-verified dependency lock
+- **Pinned installation** of asusctl 6.5.0 with a hash-verified dependency lock
 - **Optional system firmware updates** via fwupd
 - **Kernel compatibility checking** without changing installed kernels
 - **Build dependency installation** limited to packages used by the selected components
@@ -106,7 +106,7 @@ ASUS_UPDATE_FIRMWARE=1 ./install-asus-linux.sh
 - **Build dependencies** - All required development packages
 
 ### System Configuration
-- **systemd services** - asusd, asus-shutdown, and asusd-user; optionally supergfxd
+- **systemd services** - asusd, asus-shutdown; optionally supergfxd
 - **udev rules** - Hardware detection and device permissions
 - **DBus configuration** - Inter-process communication setup
 - **Firmware updates** - Only when explicitly enabled
