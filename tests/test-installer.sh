@@ -26,11 +26,11 @@ assert_false() {
     fi
 }
 
-[[ "$ASUSCTL_VERSION" == "6.4.0" ]] || fail "unexpected asusctl version"
+[[ "$ASUSCTL_VERSION" == "6.5.0" ]] || fail "unexpected asusctl version"
 [[ "$SCRIPT_VERSION" == "22.3.3" ]] || fail "unexpected installer release version"
 [[ "$SUPPORTED_MINT_VERSION" == "22.3" ]] || fail "unexpected supported Mint release"
 [[ "$SUPPORTED_UBUNTU_VERSION" == "24.04" ]] || fail "unexpected supported Ubuntu release"
-[[ "$ASUSCTL_COMMIT" == "e6c1469ccf2a745c6a1aff763852df90066c6baa" ]] || fail "unexpected asusctl commit"
+[[ "$ASUSCTL_COMMIT" == "ec09e7629da3e4081d9c342e7f323e30158cccfd" ]] || fail "unexpected asusctl commit"
 [[ "$SUPERGFXCTL_VERSION" == "5.2.7" ]] || fail "unexpected supergfxctl version"
 [[ "$SUPERGFXCTL_COMMIT" == "a86383e1b2f32d4f87f8dd47f0d6b06690877c64" ]] || fail "unexpected supergfxctl commit"
 [[ "$SUPERGFXCTL_MIN_KERNEL" == "6.1" ]] || fail "unexpected supergfxctl kernel threshold"

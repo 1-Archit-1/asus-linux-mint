@@ -34,8 +34,8 @@ SUPPORTED_UBUNTU_VERSION="24.04"
 
 # Pinned upstream revisions. Keeping these immutable prevents an upstream branch
 # change from silently becoming privileged code on user systems.
-ASUSCTL_VERSION="6.4.0"
-ASUSCTL_COMMIT="e6c1469ccf2a745c6a1aff763852df90066c6baa"
+ASUSCTL_VERSION="6.5.0"
+ASUSCTL_COMMIT="ec09e7629da3e4081d9c342e7f323e30158cccfd"
 ASUSCTL_REPO="https://github.com/OpenGamingCollective/asusctl.git"
 SUPERGFXCTL_VERSION="5.2.7"
 SUPERGFXCTL_COMMIT="a86383e1b2f32d4f87f8dd47f0d6b06690877c64"
